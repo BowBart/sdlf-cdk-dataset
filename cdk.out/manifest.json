@@ -1,0 +1,316 @@
+{
+  "version": "16.0.0",
+  "artifacts": {
+    "Tree": {
+      "type": "cdk:tree",
+      "properties": {
+        "file": "tree.json"
+      }
+    },
+    "SdlfCdkDatasetStack.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "SdlfCdkDatasetStack.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+      }
+    },
+    "SdlfCdkDatasetStack": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://unknown-account/unknown-region",
+      "properties": {
+        "templateFile": "SdlfCdkDatasetStack.template.json",
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-deploy-role-${AWS::AccountId}-${AWS::Region}",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-cfn-exec-role-${AWS::AccountId}-${AWS::Region}",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/ba564a67cb95ae692e1db1defff64d463af0fce09a2725a65b99a7d6dab876a0.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
+        "additionalDependencies": [
+          "SdlfCdkDatasetStack.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-lookup-role-${AWS::AccountId}-${AWS::Region}",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+        }
+      },
+      "dependencies": [
+        "SdlfCdkDatasetStack.assets"
+      ],
+      "metadata": {
+        "/SdlfCdkDatasetStack/SsmParameterValue:--SDLF--KMS--dreamteam--InfraKeyId:C96584B6-F00A-464E-AD19-53AFF4B05118.Parameter": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "SsmParameterValueSDLFKMSdreamteamInfraKeyIdC96584B6F00A464EAD1953AFF4B05118Parameter"
+          }
+        ],
+        "/SdlfCdkDatasetStack/SsmParameterValue:--SDLF--Misc--pOrg:C96584B6-F00A-464E-AD19-53AFF4B05118.Parameter": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "SsmParameterValueSDLFMiscpOrgC96584B6F00A464EAD1953AFF4B05118Parameter"
+          }
+        ],
+        "/SdlfCdkDatasetStack/SsmParameterValue:--SDLF--Misc--pApp:C96584B6-F00A-464E-AD19-53AFF4B05118.Parameter": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "SsmParameterValueSDLFMiscpAppC96584B6F00A464EAD1953AFF4B05118Parameter"
+          }
+        ],
+        "/SdlfCdkDatasetStack/SsmParameterValue:--SDLF--Misc--pEnv:C96584B6-F00A-464E-AD19-53AFF4B05118.Parameter": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "SsmParameterValueSDLFMiscpEnvC96584B6F00A464EAD1953AFF4B05118Parameter"
+          }
+        ],
+        "/SdlfCdkDatasetStack/SsmParameterValue:--SDLF--S3--StageBucket:C96584B6-F00A-464E-AD19-53AFF4B05118.Parameter": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "SsmParameterValueSDLFS3StageBucketC96584B6F00A464EAD1953AFF4B05118Parameter"
+          }
+        ],
+        "/SdlfCdkDatasetStack/SsmParameterValue:--SDLF--IAM--dreamteam--CrawlerRoleArn:C96584B6-F00A-464E-AD19-53AFF4B05118.Parameter": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "SsmParameterValueSDLFIAMdreamteamCrawlerRoleArnC96584B6F00A464EAD1953AFF4B05118Parameter"
+          }
+        ],
+        "/SdlfCdkDatasetStack/hpc-rDeadLetterQueueRoutingPostStep/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "hpcrDeadLetterQueueRoutingPostStep9172FF83"
+          }
+        ],
+        "/SdlfCdkDatasetStack/hpc-rQueueRoutingPostStep/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "hpcrQueueRoutingPostStep9D171433"
+          }
+        ],
+        "/SdlfCdkDatasetStack/hpc-rPostStateRule/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "hpcrPostStateRuleC2F78A8E"
+          }
+        ],
+        "/SdlfCdkDatasetStack/hpc-rGlueDataCatalo": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "hpcrGlueDataCatalo"
+          }
+        ],
+        "/SdlfCdkDatasetStack/hpc-rGlueCrawler": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "hpcrGlueCrawler"
+          }
+        ],
+        "/SdlfCdkDatasetStack/hpc-rGlueCrawlerLakeFormationPermissions": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "hpcrGlueCrawlerLakeFormationPermissions"
+          }
+        ],
+        "/SdlfCdkDatasetStack/hpc-rQueueRoutingPostStepSsm/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "hpcrQueueRoutingPostStepSsmD02790E5"
+          }
+        ],
+        "/SdlfCdkDatasetStack/hpc-rDeadLetterQueueRoutingPostStepSsm/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "hpcrDeadLetterQueueRoutingPostStepSsmCF87C4F3"
+          }
+        ],
+        "/SdlfCdkDatasetStack/hpc-rGlueDataCatalogSsm/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "hpcrGlueDataCatalogSsmFB04EC1D"
+          }
+        ],
+        "/SdlfCdkDatasetStack/hpc-initDBResource/CustomResourcePolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "hpcinitDBResourceCustomResourcePolicyFD2DD5BC"
+          }
+        ],
+        "/SdlfCdkDatasetStack/hpc-initDBResource/Resource/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "hpcinitDBResourceA47C4E75"
+          }
+        ],
+        "/SdlfCdkDatasetStack/AWS679f53fac002430cb0da5b7982bd2287/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2"
+          }
+        ],
+        "/SdlfCdkDatasetStack/AWS679f53fac002430cb0da5b7982bd2287/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AWS679f53fac002430cb0da5b7982bd22872D164C4C"
+          }
+        ],
+        "/SdlfCdkDatasetStack/lsf-rDeadLetterQueueRoutingPostStep/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lsfrDeadLetterQueueRoutingPostStep7508FEF1"
+          }
+        ],
+        "/SdlfCdkDatasetStack/lsf-rQueueRoutingPostStep/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lsfrQueueRoutingPostStep51CCECAF"
+          }
+        ],
+        "/SdlfCdkDatasetStack/lsf-rPostStateRule/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lsfrPostStateRule0EC55997"
+          }
+        ],
+        "/SdlfCdkDatasetStack/lsf-rGlueDataCatalo": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lsfrGlueDataCatalo"
+          }
+        ],
+        "/SdlfCdkDatasetStack/lsf-rGlueCrawler": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lsfrGlueCrawler"
+          }
+        ],
+        "/SdlfCdkDatasetStack/lsf-rGlueCrawlerLakeFormationPermissions": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lsfrGlueCrawlerLakeFormationPermissions"
+          }
+        ],
+        "/SdlfCdkDatasetStack/lsf-rQueueRoutingPostStepSsm/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lsfrQueueRoutingPostStepSsm2C39B918"
+          }
+        ],
+        "/SdlfCdkDatasetStack/lsf-rDeadLetterQueueRoutingPostStepSsm/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lsfrDeadLetterQueueRoutingPostStepSsmCE70AA0C"
+          }
+        ],
+        "/SdlfCdkDatasetStack/lsf-rGlueDataCatalogSsm/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lsfrGlueDataCatalogSsm9A398CE4"
+          }
+        ],
+        "/SdlfCdkDatasetStack/lsf-initDBResource/CustomResourcePolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lsfinitDBResourceCustomResourcePolicyA4B9E171"
+          }
+        ],
+        "/SdlfCdkDatasetStack/lsf-initDBResource/Resource/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "lsfinitDBResource4391EF66"
+          }
+        ],
+        "/SdlfCdkDatasetStack/clf-rDeadLetterQueueRoutingPostStep/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "clfrDeadLetterQueueRoutingPostStep4245088B"
+          }
+        ],
+        "/SdlfCdkDatasetStack/clf-rQueueRoutingPostStep/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "clfrQueueRoutingPostStep59E840A5"
+          }
+        ],
+        "/SdlfCdkDatasetStack/clf-rPostStateRule/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "clfrPostStateRule302B4EFE"
+          }
+        ],
+        "/SdlfCdkDatasetStack/clf-rGlueDataCatalo": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "clfrGlueDataCatalo"
+          }
+        ],
+        "/SdlfCdkDatasetStack/clf-rGlueCrawler": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "clfrGlueCrawler"
+          }
+        ],
+        "/SdlfCdkDatasetStack/clf-rGlueCrawlerLakeFormationPermissions": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "clfrGlueCrawlerLakeFormationPermissions"
+          }
+        ],
+        "/SdlfCdkDatasetStack/clf-rQueueRoutingPostStepSsm/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "clfrQueueRoutingPostStepSsm6EC21B4E"
+          }
+        ],
+        "/SdlfCdkDatasetStack/clf-rDeadLetterQueueRoutingPostStepSsm/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "clfrDeadLetterQueueRoutingPostStepSsmC51EDA20"
+          }
+        ],
+        "/SdlfCdkDatasetStack/clf-rGlueDataCatalogSsm/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "clfrGlueDataCatalogSsm082776BB"
+          }
+        ],
+        "/SdlfCdkDatasetStack/clf-initDBResource/CustomResourcePolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "clfinitDBResourceCustomResourcePolicy3458E86F"
+          }
+        ],
+        "/SdlfCdkDatasetStack/clf-initDBResource/Resource/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "clfinitDBResource500A18A9"
+          }
+        ],
+        "/SdlfCdkDatasetStack/CDKMetadata/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadata"
+          }
+        ],
+        "/SdlfCdkDatasetStack/CDKMetadata/Condition": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadataAvailable"
+          }
+        ],
+        "/SdlfCdkDatasetStack/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/SdlfCdkDatasetStack/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "SdlfCdkDatasetStack"
+    }
+  }
+}

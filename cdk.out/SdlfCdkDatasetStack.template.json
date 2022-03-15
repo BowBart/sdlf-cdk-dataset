@@ -1,0 +1,1166 @@
+{
+  "Parameters": {
+    "SsmParameterValueSDLFKMSdreamteamInfraKeyIdC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Type": "AWS::SSM::Parameter::Value<String>",
+      "Default": "/SDLF/KMS/dreamteam/InfraKeyId"
+    },
+    "SsmParameterValueSDLFMiscpOrgC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Type": "AWS::SSM::Parameter::Value<String>",
+      "Default": "/SDLF/Misc/pOrg"
+    },
+    "SsmParameterValueSDLFMiscpAppC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Type": "AWS::SSM::Parameter::Value<String>",
+      "Default": "/SDLF/Misc/pApp"
+    },
+    "SsmParameterValueSDLFMiscpEnvC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Type": "AWS::SSM::Parameter::Value<String>",
+      "Default": "/SDLF/Misc/pEnv"
+    },
+    "SsmParameterValueSDLFS3StageBucketC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Type": "AWS::SSM::Parameter::Value<String>",
+      "Default": "/SDLF/S3/StageBucket"
+    },
+    "SsmParameterValueSDLFIAMdreamteamCrawlerRoleArnC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Type": "AWS::SSM::Parameter::Value<String>",
+      "Default": "/SDLF/IAM/dreamteam/CrawlerRoleArn"
+    },
+    "BootstrapVersion": {
+      "Type": "AWS::SSM::Parameter::Value<String>",
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+    }
+  },
+  "Resources": {
+    "hpcrDeadLetterQueueRoutingPostStep9172FF83": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "FifoQueue": true,
+        "KmsMasterKeyId": {
+          "Ref": "SsmParameterValueSDLFKMSdreamteamInfraKeyIdC96584B6F00A464EAD1953AFF4B05118Parameter"
+        },
+        "MessageRetentionPeriod": 1209600,
+        "QueueName": "sdlf-dreamteam-hpc-dlq-b.fifo",
+        "VisibilityTimeout": 60
+      },
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete",
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/hpc-rDeadLetterQueueRoutingPostStep/Resource"
+      }
+    },
+    "hpcrQueueRoutingPostStep9D171433": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "FifoQueue": true,
+        "KmsMasterKeyId": {
+          "Ref": "SsmParameterValueSDLFKMSdreamteamInfraKeyIdC96584B6F00A464EAD1953AFF4B05118Parameter"
+        },
+        "QueueName": "sdlf-dreamteam-hpc-queue-b.fifo",
+        "RedrivePolicy": {
+          "deadLetterTargetArn": {
+            "Fn::GetAtt": [
+              "hpcrDeadLetterQueueRoutingPostStep9172FF83",
+              "Arn"
+            ]
+          },
+          "maxReceiveCount": 1
+        },
+        "VisibilityTimeout": 60
+      },
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete",
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/hpc-rQueueRoutingPostStep/Resource"
+      }
+    },
+    "hpcrPostStateRuleC2F78A8E": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "Description": "Trigger StageB Routing Lambda depending on the dataset Schedule Expression",
+        "Name": "sdlf-dreamteam-hpc-rule-b",
+        "ScheduleExpression": "cron(0/5 * * * ? *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::Join": [
+                "",
+                [
+                  "arn:aws:lambda:",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ":",
+                  {
+                    "Ref": "AWS::AccountId"
+                  },
+                  ":function:sdlf-dreamteam-main-routing-b"
+                ]
+              ]
+            },
+            "Id": "Target0",
+            "Input": {
+              "Fn::Join": [
+                "",
+                [
+                  "{\"team\":\"dreamteam\",\"pipeline\":\"main\",\"pipeline_stage\":\"StageB\",\"dataset\":\"hpc\",\"org\":\"",
+                  {
+                    "Ref": "SsmParameterValueSDLFMiscpOrgC96584B6F00A464EAD1953AFF4B05118Parameter"
+                  },
+                  "\",\"app\":\"",
+                  {
+                    "Ref": "SsmParameterValueSDLFMiscpAppC96584B6F00A464EAD1953AFF4B05118Parameter"
+                  },
+                  "\",\"env\":\"",
+                  {
+                    "Ref": "SsmParameterValueSDLFMiscpEnvC96584B6F00A464EAD1953AFF4B05118Parameter"
+                  },
+                  "\"}"
+                ]
+              ]
+            }
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/hpc-rPostStateRule/Resource"
+      }
+    },
+    "hpcrGlueDataCatalo": {
+      "Type": "AWS::Glue::Database",
+      "Properties": {
+        "CatalogId": {
+          "Ref": "AWS::AccountId"
+        },
+        "DatabaseInput": {
+          "Description": "dreamteam team hpc metadata catalog",
+          "Name": {
+            "Fn::Join": [
+              "",
+              [
+                {
+                  "Ref": "SsmParameterValueSDLFMiscpOrgC96584B6F00A464EAD1953AFF4B05118Parameter"
+                },
+                "_",
+                {
+                  "Ref": "SsmParameterValueSDLFMiscpAppC96584B6F00A464EAD1953AFF4B05118Parameter"
+                },
+                "_",
+                {
+                  "Ref": "SsmParameterValueSDLFMiscpEnvC96584B6F00A464EAD1953AFF4B05118Parameter"
+                },
+                "_dreamteam_hpc_db"
+              ]
+            ]
+          }
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/hpc-rGlueDataCatalo"
+      }
+    },
+    "hpcrGlueCrawler": {
+      "Type": "AWS::Glue::Crawler",
+      "Properties": {
+        "Role": {
+          "Ref": "SsmParameterValueSDLFIAMdreamteamCrawlerRoleArnC96584B6F00A464EAD1953AFF4B05118Parameter"
+        },
+        "Targets": {
+          "S3Targets": [
+            {
+              "Path": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "s3://",
+                    {
+                      "Ref": "SsmParameterValueSDLFS3StageBucketC96584B6F00A464EAD1953AFF4B05118Parameter"
+                    },
+                    "/post-stage/dreamteam/hpc"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        "DatabaseName": {
+          "Ref": "hpcrGlueDataCatalo"
+        },
+        "Name": "sdlf-dreamteam-hpc-post-stage-crawler"
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/hpc-rGlueCrawler"
+      }
+    },
+    "hpcrGlueCrawlerLakeFormationPermissions": {
+      "Type": "AWS::LakeFormation::Permissions",
+      "Properties": {
+        "DataLakePrincipal": {
+          "DataLakePrincipalIdentifier": {
+            "Ref": "SsmParameterValueSDLFIAMdreamteamCrawlerRoleArnC96584B6F00A464EAD1953AFF4B05118Parameter"
+          }
+        },
+        "Resource": {
+          "DatabaseResource": {
+            "Name": {
+              "Ref": "hpcrGlueDataCatalo"
+            }
+          }
+        },
+        "Permissions": [
+          "CREATE_TABLE",
+          "ALTER",
+          "DROP"
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/hpc-rGlueCrawlerLakeFormationPermissions"
+      }
+    },
+    "hpcrQueueRoutingPostStepSsmD02790E5": {
+      "Type": "AWS::SSM::Parameter",
+      "Properties": {
+        "Type": "String",
+        "Value": {
+          "Fn::GetAtt": [
+            "hpcrDeadLetterQueueRoutingPostStep9172FF83",
+            "QueueName"
+          ]
+        },
+        "Description": "Name of the StageB dreamteam hpc DLQ",
+        "Name": "/SDLF/SQS/dreamteam/hpcStageBQueue"
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/hpc-rQueueRoutingPostStepSsm/Resource"
+      }
+    },
+    "hpcrDeadLetterQueueRoutingPostStepSsmCF87C4F3": {
+      "Type": "AWS::SSM::Parameter",
+      "Properties": {
+        "Type": "String",
+        "Value": {
+          "Fn::GetAtt": [
+            "hpcrDeadLetterQueueRoutingPostStep9172FF83",
+            "QueueName"
+          ]
+        },
+        "Description": "Name of the StageB dreamteam hpc DLQ",
+        "Name": "/SDLF/SQS/dreamteam/hpcStageBDLQ"
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/hpc-rDeadLetterQueueRoutingPostStepSsm/Resource"
+      }
+    },
+    "hpcrGlueDataCatalogSsmFB04EC1D": {
+      "Type": "AWS::SSM::Parameter",
+      "Properties": {
+        "Type": "String",
+        "Value": {
+          "Ref": "hpcrGlueDataCatalo"
+        },
+        "Description": "dreamteam team hpc metadata catalog",
+        "Name": "/SDLF/Glue/dreamteam/hpc/DataCatalog"
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/hpc-rGlueDataCatalogSsm/Resource"
+      }
+    },
+    "hpcinitDBResourceCustomResourcePolicyFD2DD5BC": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "dynamodb:PutItem",
+              "Effect": "Allow",
+              "Resource": "arn:aws:dynamodb:eu-west-1:120549313746:table/octagon-Datasets-dev"
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "hpcinitDBResourceCustomResourcePolicyFD2DD5BC",
+        "Roles": [
+          {
+            "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/hpc-initDBResource/CustomResourcePolicy/Resource"
+      }
+    },
+    "hpcinitDBResourceA47C4E75": {
+      "Type": "Custom::AWS",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+            "Arn"
+          ]
+        },
+        "Create": "{\"service\":\"DynamoDB\",\"action\":\"putItem\",\"parameters\":{\"TableName\":\"octagon-Datasets-dev\",\"Item\":{\"name\":{\"S\":\"dreamteam-hpc\"},\"version\":{\"N\":\"1\"},\"pipeline\":{\"S\":\"main\"},\"min_items_process\":{\"M\":{\"stage_c\":{\"N\":\"1\"},\"stage_b\":{\"N\":\"1\"}}},\"transforms\":{\"M\":{\"stage_a_transform\":{\"S\":\"light_transform_blueprint\"},\"stage_b_transform\":{\"S\":\"heavy_transform_blueprint\"}}},\"max_items_process\":{\"M\":{\"stage_c\":{\"N\":\"100\"},\"stage_b\":{\"N\":\"100\"}}}}},\"physicalResourceId\":{\"id\":\"initDBData\"}}",
+        "InstallLatestAwsSdk": true
+      },
+      "DependsOn": [
+        "hpcinitDBResourceCustomResourcePolicyFD2DD5BC"
+      ],
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete",
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/hpc-initDBResource/Resource/Default"
+      }
+    },
+    "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+              ]
+            ]
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/AWS679f53fac002430cb0da5b7982bd2287/ServiceRole/Resource"
+      }
+    },
+    "AWS679f53fac002430cb0da5b7982bd22872D164C4C": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+          },
+          "S3Key": "4a575666d1c2c6412590d2a56f328e040a81ad1ef59aecee31ae9b393d05f659.zip"
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+            "Arn"
+          ]
+        },
+        "Handler": "index.handler",
+        "Runtime": "nodejs12.x",
+        "Timeout": 120
+      },
+      "DependsOn": [
+        "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2"
+      ],
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/AWS679f53fac002430cb0da5b7982bd2287/Resource",
+        "aws:asset:path": "asset.4a575666d1c2c6412590d2a56f328e040a81ad1ef59aecee31ae9b393d05f659",
+        "aws:asset:is-bundled": false,
+        "aws:asset:property": "Code"
+      }
+    },
+    "lsfrDeadLetterQueueRoutingPostStep7508FEF1": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "FifoQueue": true,
+        "KmsMasterKeyId": {
+          "Ref": "SsmParameterValueSDLFKMSdreamteamInfraKeyIdC96584B6F00A464EAD1953AFF4B05118Parameter"
+        },
+        "MessageRetentionPeriod": 1209600,
+        "QueueName": "sdlf-dreamteam-lsf-dlq-b.fifo",
+        "VisibilityTimeout": 60
+      },
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete",
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/lsf-rDeadLetterQueueRoutingPostStep/Resource"
+      }
+    },
+    "lsfrQueueRoutingPostStep51CCECAF": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "FifoQueue": true,
+        "KmsMasterKeyId": {
+          "Ref": "SsmParameterValueSDLFKMSdreamteamInfraKeyIdC96584B6F00A464EAD1953AFF4B05118Parameter"
+        },
+        "QueueName": "sdlf-dreamteam-lsf-queue-b.fifo",
+        "RedrivePolicy": {
+          "deadLetterTargetArn": {
+            "Fn::GetAtt": [
+              "lsfrDeadLetterQueueRoutingPostStep7508FEF1",
+              "Arn"
+            ]
+          },
+          "maxReceiveCount": 1
+        },
+        "VisibilityTimeout": 60
+      },
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete",
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/lsf-rQueueRoutingPostStep/Resource"
+      }
+    },
+    "lsfrPostStateRule0EC55997": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "Description": "Trigger StageB Routing Lambda depending on the dataset Schedule Expression",
+        "Name": "sdlf-dreamteam-lsf-rule-b",
+        "ScheduleExpression": "cron(0/5 * * * ? *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::Join": [
+                "",
+                [
+                  "arn:aws:lambda:",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ":",
+                  {
+                    "Ref": "AWS::AccountId"
+                  },
+                  ":function:sdlf-dreamteam-main-routing-b"
+                ]
+              ]
+            },
+            "Id": "Target0",
+            "Input": {
+              "Fn::Join": [
+                "",
+                [
+                  "{\"team\":\"dreamteam\",\"pipeline\":\"main\",\"pipeline_stage\":\"StageB\",\"dataset\":\"lsf\",\"org\":\"",
+                  {
+                    "Ref": "SsmParameterValueSDLFMiscpOrgC96584B6F00A464EAD1953AFF4B05118Parameter"
+                  },
+                  "\",\"app\":\"",
+                  {
+                    "Ref": "SsmParameterValueSDLFMiscpAppC96584B6F00A464EAD1953AFF4B05118Parameter"
+                  },
+                  "\",\"env\":\"",
+                  {
+                    "Ref": "SsmParameterValueSDLFMiscpEnvC96584B6F00A464EAD1953AFF4B05118Parameter"
+                  },
+                  "\"}"
+                ]
+              ]
+            }
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/lsf-rPostStateRule/Resource"
+      }
+    },
+    "lsfrGlueDataCatalo": {
+      "Type": "AWS::Glue::Database",
+      "Properties": {
+        "CatalogId": {
+          "Ref": "AWS::AccountId"
+        },
+        "DatabaseInput": {
+          "Description": "dreamteam team lsf metadata catalog",
+          "Name": {
+            "Fn::Join": [
+              "",
+              [
+                {
+                  "Ref": "SsmParameterValueSDLFMiscpOrgC96584B6F00A464EAD1953AFF4B05118Parameter"
+                },
+                "_",
+                {
+                  "Ref": "SsmParameterValueSDLFMiscpAppC96584B6F00A464EAD1953AFF4B05118Parameter"
+                },
+                "_",
+                {
+                  "Ref": "SsmParameterValueSDLFMiscpEnvC96584B6F00A464EAD1953AFF4B05118Parameter"
+                },
+                "_dreamteam_lsf_db"
+              ]
+            ]
+          }
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/lsf-rGlueDataCatalo"
+      }
+    },
+    "lsfrGlueCrawler": {
+      "Type": "AWS::Glue::Crawler",
+      "Properties": {
+        "Role": {
+          "Ref": "SsmParameterValueSDLFIAMdreamteamCrawlerRoleArnC96584B6F00A464EAD1953AFF4B05118Parameter"
+        },
+        "Targets": {
+          "S3Targets": [
+            {
+              "Path": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "s3://",
+                    {
+                      "Ref": "SsmParameterValueSDLFS3StageBucketC96584B6F00A464EAD1953AFF4B05118Parameter"
+                    },
+                    "/post-stage/dreamteam/lsf"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        "DatabaseName": {
+          "Ref": "lsfrGlueDataCatalo"
+        },
+        "Name": "sdlf-dreamteam-lsf-post-stage-crawler"
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/lsf-rGlueCrawler"
+      }
+    },
+    "lsfrGlueCrawlerLakeFormationPermissions": {
+      "Type": "AWS::LakeFormation::Permissions",
+      "Properties": {
+        "DataLakePrincipal": {
+          "DataLakePrincipalIdentifier": {
+            "Ref": "SsmParameterValueSDLFIAMdreamteamCrawlerRoleArnC96584B6F00A464EAD1953AFF4B05118Parameter"
+          }
+        },
+        "Resource": {
+          "DatabaseResource": {
+            "Name": {
+              "Ref": "lsfrGlueDataCatalo"
+            }
+          }
+        },
+        "Permissions": [
+          "CREATE_TABLE",
+          "ALTER",
+          "DROP"
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/lsf-rGlueCrawlerLakeFormationPermissions"
+      }
+    },
+    "lsfrQueueRoutingPostStepSsm2C39B918": {
+      "Type": "AWS::SSM::Parameter",
+      "Properties": {
+        "Type": "String",
+        "Value": {
+          "Fn::GetAtt": [
+            "lsfrDeadLetterQueueRoutingPostStep7508FEF1",
+            "QueueName"
+          ]
+        },
+        "Description": "Name of the StageB dreamteam lsf DLQ",
+        "Name": "/SDLF/SQS/dreamteam/lsfStageBQueue"
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/lsf-rQueueRoutingPostStepSsm/Resource"
+      }
+    },
+    "lsfrDeadLetterQueueRoutingPostStepSsmCE70AA0C": {
+      "Type": "AWS::SSM::Parameter",
+      "Properties": {
+        "Type": "String",
+        "Value": {
+          "Fn::GetAtt": [
+            "lsfrDeadLetterQueueRoutingPostStep7508FEF1",
+            "QueueName"
+          ]
+        },
+        "Description": "Name of the StageB dreamteam lsf DLQ",
+        "Name": "/SDLF/SQS/dreamteam/lsfStageBDLQ"
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/lsf-rDeadLetterQueueRoutingPostStepSsm/Resource"
+      }
+    },
+    "lsfrGlueDataCatalogSsm9A398CE4": {
+      "Type": "AWS::SSM::Parameter",
+      "Properties": {
+        "Type": "String",
+        "Value": {
+          "Ref": "lsfrGlueDataCatalo"
+        },
+        "Description": "dreamteam team lsf metadata catalog",
+        "Name": "/SDLF/Glue/dreamteam/lsf/DataCatalog"
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/lsf-rGlueDataCatalogSsm/Resource"
+      }
+    },
+    "lsfinitDBResourceCustomResourcePolicyA4B9E171": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "dynamodb:PutItem",
+              "Effect": "Allow",
+              "Resource": "arn:aws:dynamodb:eu-west-1:120549313746:table/octagon-Datasets-dev"
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "lsfinitDBResourceCustomResourcePolicyA4B9E171",
+        "Roles": [
+          {
+            "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/lsf-initDBResource/CustomResourcePolicy/Resource"
+      }
+    },
+    "lsfinitDBResource4391EF66": {
+      "Type": "Custom::AWS",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+            "Arn"
+          ]
+        },
+        "Create": "{\"service\":\"DynamoDB\",\"action\":\"putItem\",\"parameters\":{\"TableName\":\"octagon-Datasets-dev\",\"Item\":{\"name\":{\"S\":\"dreamteam-lsf\"},\"version\":{\"N\":\"1\"},\"pipeline\":{\"S\":\"main\"},\"min_items_process\":{\"M\":{\"stage_c\":{\"N\":\"1\"},\"stage_b\":{\"N\":\"1\"}}},\"transforms\":{\"M\":{\"stage_a_transform\":{\"S\":\"light_transform_blueprint\"},\"stage_b_transform\":{\"S\":\"heavy_transform_blueprint\"}}},\"max_items_process\":{\"M\":{\"stage_c\":{\"N\":\"100\"},\"stage_b\":{\"N\":\"100\"}}}}},\"physicalResourceId\":{\"id\":\"initDBData\"}}",
+        "InstallLatestAwsSdk": true
+      },
+      "DependsOn": [
+        "lsfinitDBResourceCustomResourcePolicyA4B9E171"
+      ],
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete",
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/lsf-initDBResource/Resource/Default"
+      }
+    },
+    "clfrDeadLetterQueueRoutingPostStep4245088B": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "FifoQueue": true,
+        "KmsMasterKeyId": {
+          "Ref": "SsmParameterValueSDLFKMSdreamteamInfraKeyIdC96584B6F00A464EAD1953AFF4B05118Parameter"
+        },
+        "MessageRetentionPeriod": 1209600,
+        "QueueName": "sdlf-dreamteam-clf-dlq-b.fifo",
+        "VisibilityTimeout": 60
+      },
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete",
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/clf-rDeadLetterQueueRoutingPostStep/Resource"
+      }
+    },
+    "clfrQueueRoutingPostStep59E840A5": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "FifoQueue": true,
+        "KmsMasterKeyId": {
+          "Ref": "SsmParameterValueSDLFKMSdreamteamInfraKeyIdC96584B6F00A464EAD1953AFF4B05118Parameter"
+        },
+        "QueueName": "sdlf-dreamteam-clf-queue-b.fifo",
+        "RedrivePolicy": {
+          "deadLetterTargetArn": {
+            "Fn::GetAtt": [
+              "clfrDeadLetterQueueRoutingPostStep4245088B",
+              "Arn"
+            ]
+          },
+          "maxReceiveCount": 1
+        },
+        "VisibilityTimeout": 60
+      },
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete",
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/clf-rQueueRoutingPostStep/Resource"
+      }
+    },
+    "clfrPostStateRule302B4EFE": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "Description": "Trigger StageB Routing Lambda depending on the dataset Schedule Expression",
+        "Name": "sdlf-dreamteam-clf-rule-b",
+        "ScheduleExpression": "cron(0/5 * * * ? *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::Join": [
+                "",
+                [
+                  "arn:aws:lambda:",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ":",
+                  {
+                    "Ref": "AWS::AccountId"
+                  },
+                  ":function:sdlf-dreamteam-main-routing-b"
+                ]
+              ]
+            },
+            "Id": "Target0",
+            "Input": {
+              "Fn::Join": [
+                "",
+                [
+                  "{\"team\":\"dreamteam\",\"pipeline\":\"main\",\"pipeline_stage\":\"StageB\",\"dataset\":\"clf\",\"org\":\"",
+                  {
+                    "Ref": "SsmParameterValueSDLFMiscpOrgC96584B6F00A464EAD1953AFF4B05118Parameter"
+                  },
+                  "\",\"app\":\"",
+                  {
+                    "Ref": "SsmParameterValueSDLFMiscpAppC96584B6F00A464EAD1953AFF4B05118Parameter"
+                  },
+                  "\",\"env\":\"",
+                  {
+                    "Ref": "SsmParameterValueSDLFMiscpEnvC96584B6F00A464EAD1953AFF4B05118Parameter"
+                  },
+                  "\"}"
+                ]
+              ]
+            }
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/clf-rPostStateRule/Resource"
+      }
+    },
+    "clfrGlueDataCatalo": {
+      "Type": "AWS::Glue::Database",
+      "Properties": {
+        "CatalogId": {
+          "Ref": "AWS::AccountId"
+        },
+        "DatabaseInput": {
+          "Description": "dreamteam team clf metadata catalog",
+          "Name": {
+            "Fn::Join": [
+              "",
+              [
+                {
+                  "Ref": "SsmParameterValueSDLFMiscpOrgC96584B6F00A464EAD1953AFF4B05118Parameter"
+                },
+                "_",
+                {
+                  "Ref": "SsmParameterValueSDLFMiscpAppC96584B6F00A464EAD1953AFF4B05118Parameter"
+                },
+                "_",
+                {
+                  "Ref": "SsmParameterValueSDLFMiscpEnvC96584B6F00A464EAD1953AFF4B05118Parameter"
+                },
+                "_dreamteam_clf_db"
+              ]
+            ]
+          }
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/clf-rGlueDataCatalo"
+      }
+    },
+    "clfrGlueCrawler": {
+      "Type": "AWS::Glue::Crawler",
+      "Properties": {
+        "Role": {
+          "Ref": "SsmParameterValueSDLFIAMdreamteamCrawlerRoleArnC96584B6F00A464EAD1953AFF4B05118Parameter"
+        },
+        "Targets": {
+          "S3Targets": [
+            {
+              "Path": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "s3://",
+                    {
+                      "Ref": "SsmParameterValueSDLFS3StageBucketC96584B6F00A464EAD1953AFF4B05118Parameter"
+                    },
+                    "/post-stage/dreamteam/clf"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        "DatabaseName": {
+          "Ref": "clfrGlueDataCatalo"
+        },
+        "Name": "sdlf-dreamteam-clf-post-stage-crawler"
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/clf-rGlueCrawler"
+      }
+    },
+    "clfrGlueCrawlerLakeFormationPermissions": {
+      "Type": "AWS::LakeFormation::Permissions",
+      "Properties": {
+        "DataLakePrincipal": {
+          "DataLakePrincipalIdentifier": {
+            "Ref": "SsmParameterValueSDLFIAMdreamteamCrawlerRoleArnC96584B6F00A464EAD1953AFF4B05118Parameter"
+          }
+        },
+        "Resource": {
+          "DatabaseResource": {
+            "Name": {
+              "Ref": "clfrGlueDataCatalo"
+            }
+          }
+        },
+        "Permissions": [
+          "CREATE_TABLE",
+          "ALTER",
+          "DROP"
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/clf-rGlueCrawlerLakeFormationPermissions"
+      }
+    },
+    "clfrQueueRoutingPostStepSsm6EC21B4E": {
+      "Type": "AWS::SSM::Parameter",
+      "Properties": {
+        "Type": "String",
+        "Value": {
+          "Fn::GetAtt": [
+            "clfrDeadLetterQueueRoutingPostStep4245088B",
+            "QueueName"
+          ]
+        },
+        "Description": "Name of the StageB dreamteam clf DLQ",
+        "Name": "/SDLF/SQS/dreamteam/clfStageBQueue"
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/clf-rQueueRoutingPostStepSsm/Resource"
+      }
+    },
+    "clfrDeadLetterQueueRoutingPostStepSsmC51EDA20": {
+      "Type": "AWS::SSM::Parameter",
+      "Properties": {
+        "Type": "String",
+        "Value": {
+          "Fn::GetAtt": [
+            "clfrDeadLetterQueueRoutingPostStep4245088B",
+            "QueueName"
+          ]
+        },
+        "Description": "Name of the StageB dreamteam clf DLQ",
+        "Name": "/SDLF/SQS/dreamteam/clfStageBDLQ"
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/clf-rDeadLetterQueueRoutingPostStepSsm/Resource"
+      }
+    },
+    "clfrGlueDataCatalogSsm082776BB": {
+      "Type": "AWS::SSM::Parameter",
+      "Properties": {
+        "Type": "String",
+        "Value": {
+          "Ref": "clfrGlueDataCatalo"
+        },
+        "Description": "dreamteam team clf metadata catalog",
+        "Name": "/SDLF/Glue/dreamteam/clf/DataCatalog"
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/clf-rGlueDataCatalogSsm/Resource"
+      }
+    },
+    "clfinitDBResourceCustomResourcePolicy3458E86F": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "dynamodb:PutItem",
+              "Effect": "Allow",
+              "Resource": "arn:aws:dynamodb:eu-west-1:120549313746:table/octagon-Datasets-dev"
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "clfinitDBResourceCustomResourcePolicy3458E86F",
+        "Roles": [
+          {
+            "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/clf-initDBResource/CustomResourcePolicy/Resource"
+      }
+    },
+    "clfinitDBResource500A18A9": {
+      "Type": "Custom::AWS",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+            "Arn"
+          ]
+        },
+        "Create": "{\"service\":\"DynamoDB\",\"action\":\"putItem\",\"parameters\":{\"TableName\":\"octagon-Datasets-dev\",\"Item\":{\"name\":{\"S\":\"dreamteam-clf\"},\"version\":{\"N\":\"1\"},\"pipeline\":{\"S\":\"main\"},\"min_items_process\":{\"M\":{\"stage_c\":{\"N\":\"1\"},\"stage_b\":{\"N\":\"1\"}}},\"transforms\":{\"M\":{\"stage_a_transform\":{\"S\":\"light_transform_blueprint\"},\"stage_b_transform\":{\"S\":\"heavy_transform_blueprint\"}}},\"max_items_process\":{\"M\":{\"stage_c\":{\"N\":\"100\"},\"stage_b\":{\"N\":\"100\"}}}}},\"physicalResourceId\":{\"id\":\"initDBData\"}}",
+        "InstallLatestAwsSdk": true
+      },
+      "DependsOn": [
+        "clfinitDBResourceCustomResourcePolicy3458E86F"
+      ],
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete",
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/clf-initDBResource/Resource/Default"
+      }
+    },
+    "CDKMetadata": {
+      "Type": "AWS::CDK::Metadata",
+      "Properties": {
+        "Analytics": "v2:deflate64:H4sIAAAAAAAA/11Ry07DMBD8Fu6OaUBC4kiDOJf0A6KNs63c+CG8diMU5d9ZO01BnHbWXs/OjJ9k/SJ3DzBRpYaxMrqX8zGCGkVzcgcIYDFiEC2ST0Gh4MFupi+S82fChHmqgEUYsP0Acv5ITkXt3R4IxVG7s8Ho3XYq7oBfbngReEUXmbRNpnDmuoizSShnbt8hQp/5GDcBJoMhLxzx5IOFTCGzXAxWE3FHgshmI4H3/7r4a2kRGnjk4I1W3+VmRa2/KfBZAT13QIQs7S0X7uU+qRFjdrcIlSh624VbOjw1UVPO7oH9b5l5w4WSwz6zyOLMu0GveTg/oLzQ47XeyfqVP+hCWlchuagtynatP6m6Ry28AQAA"
+      },
+      "Metadata": {
+        "aws:cdk:path": "SdlfCdkDatasetStack/CDKMetadata/Default"
+      },
+      "Condition": "CDKMetadataAvailable"
+    }
+  },
+  "Conditions": {
+    "CDKMetadataAvailable": {
+      "Fn::Or": [
+        {
+          "Fn::Or": [
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "af-south-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-east-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-northeast-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-northeast-2"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-south-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-southeast-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-southeast-2"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ca-central-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "cn-north-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "cn-northwest-1"
+              ]
+            }
+          ]
+        },
+        {
+          "Fn::Or": [
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-central-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-north-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-south-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-west-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-west-2"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-west-3"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "me-south-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "sa-east-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "us-east-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "us-east-2"
+              ]
+            }
+          ]
+        },
+        {
+          "Fn::Or": [
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "us-west-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "us-west-2"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5"
+                  ],
+                  {
+                    "Ref": "BootstrapVersion"
+                  }
+                ]
+              }
+            ]
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+        }
+      ]
+    }
+  }
+}
