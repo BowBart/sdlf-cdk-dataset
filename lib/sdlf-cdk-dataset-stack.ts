@@ -85,10 +85,12 @@ export class SdlfCdkDatasetStack extends Stack {
     });
 
     const rPermissionEventsInvokeRoutingLambda = lambda.Function.fromFunctionArn(this,`${dataset.name}-rPermissionEventsInvokeRoutingLambda`, `arn:aws:lambda:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:function:sdlf-${pTeamName}-${pPipelineName}-routing-b`);
-    rPermissionEventsInvokeRoutingLambda.addPermission('allowInvocation',{
-      principal: new iam.ServicePrincipal('events.amazonaws.com'),
-      action: "lambda:InvokeFunction",
-      sourceArn: rPostStateRule.ruleArn
+
+    const lamdbaInvokePermission = new lambda.CfnPermission(this, `${dataset.name}-allowInvoke`, {
+      action: 'lambda:InvokeFunction',
+      functionName: rPermissionEventsInvokeRoutingLambda.functionArn,
+      sourceArn: rPostStateRule.ruleArn,
+      principal: 'events.amazonaws.com',
     });
 
     // glue resource
